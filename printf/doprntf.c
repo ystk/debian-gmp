@@ -4,7 +4,7 @@
    CERTAIN TO BE SUBJECT TO INCOMPATIBLE CHANGES OR DISAPPEAR COMPLETELY IN
    FUTURE GNU MP RELEASES.
 
-Copyright 2001, 2002 Free Software Foundation, Inc.
+Copyright 2001, 2002, 2011 Free Software Foundation, Inc.
 
 This file is part of the GNU MP Library.
 
@@ -62,7 +62,7 @@ __gmp_doprnt_mpf (const struct doprnt_funs_t *funs,
   int         fraczeros, fraclen, preczeros;
   char        *s, *free_ptr;
   mp_exp_t    exp;
-  char        exponent[BITS_PER_MP_LIMB + 10];
+  char        exponent[GMP_LIMB_BITS + 10];
   const char  *showbase;
   int         retval = 0;
 
@@ -89,9 +89,11 @@ __gmp_doprnt_mpf (const struct doprnt_funs_t *funs,
 	   overestimate the integer part, and add prec.  If f<1 then
 	   underestimate the zeros between the radix point and the first
 	   digit and subtract that from prec.  In either case add 2 so the
-	   round to nearest can be applied accurately.  */
-	ndigits = prec + 2
-	  + EXP(f) * (__mp_bases[ABS(p->base)].chars_per_limb + (EXP(f)>=0));
+	   round to nearest can be applied accurately.  Finally, we add 1 to
+	   handle the case of 1-eps where EXP(f) = 0 but mpf_get_str returns
+	   exp as 1.  */
+	ndigits = prec + 2 + 1
+	  + EXP(f) * (mp_bases[ABS(p->base)].chars_per_limb + (EXP(f)>=0));
 	ndigits = MAX (ndigits, 1);
 	break;
 

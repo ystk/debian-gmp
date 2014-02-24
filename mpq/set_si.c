@@ -1,4 +1,4 @@
-/* mpq_set_si(dest,ulong_num,ulong_den) -- Set DEST to the retional number
+/* mpq_set_si(dest,ulong_num,ulong_den) -- Set DEST to the rational number
    ULONG_NUM/ULONG_DEN.
 
 Copyright 1991, 1994, 1995, 2001, 2003 Free Software Foundation, Inc.
@@ -35,7 +35,7 @@ mpq_set_si (MP_RAT *dest, signed long int num, unsigned long int den)
       return;
     }
 
-  abs_num = ABS (num);
+  abs_num = ABS_CAST (unsigned long, num);
 
   if (num == 0)
     {

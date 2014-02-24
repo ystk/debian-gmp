@@ -118,6 +118,7 @@ compute_v (mp_ptr vp,
     mpn_mul (tp, up, size, ap, an);
 
   size += an;
+  size -= tp[size - 1] == 0;
 
   ASSERT (gn <= size);
 
@@ -146,21 +147,9 @@ compute_v (mp_ptr vp,
   vn = size + 1 - bn;
   ASSERT (vn <= n + 1);
 
-  /* FIXME: Use divexact. Or do the entire calculation mod 2^{n *
-     GMP_NUMB_BITS}. */
-  mpn_tdiv_qr (vp, tp, 0, tp, size, bp, bn);
+  mpn_divexact (vp, tp, size, bp, bn);
   vn -= (vp[vn-1] == 0);
 
-  /* Remainder must be zero */
-#if WANT_ASSERT
-  {
-    mp_size_t i;
-    for (i = 0; i < bn; i++)
-      {
-	ASSERT (tp[i] == 0);
-      }
-  }
-#endif
   return vn;
 }
 
@@ -181,7 +170,8 @@ compute_v (mp_ptr vp,
    For the lehmer call after the loop, Let T denote
    GCDEXT_DC_THRESHOLD. For the gcdext_lehmer call, we need T each for
    u, a and b, and 4T+3 scratch space. Next, for compute_v, we need T
-   + 1 for v and 2T + 1 scratch space. In all, 7T + 3 is sufficient.
+   for u, T+1 for v and 2T + 1 scratch space. In all, 7T + 3 is
+   sufficient for both operations.
 
 */
 
@@ -396,7 +386,10 @@ mpn_gcdext (mp_ptr gp, mp_ptr up, mp_size_t *usizep,
       MPN_COPY (gp, ap, n);
 
       MPN_CMP (c, u0, u1, un);
-      ASSERT (c != 0);
+      /* c == 0 can happen only when A = (2k+1) G, B = 2 G. And in
+	 this case we choose the cofactor + 1, corresponding to G = A
+	 - k B, rather than -1, corresponding to G = - A + (k+1) B. */
+      ASSERT (c != 0 || (un == 1 && u0[0] == 1 && u1[0] == 1));
       if (c < 0)
 	{
 	  MPN_NORMALIZE (u0, un);

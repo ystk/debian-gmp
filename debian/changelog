@@ -1,3 +1,196 @@
+gmp (2:5.0.5+dfsg-2) unstable; urgency=low
+
+  * Revert to FAT binary situation of 5.0.4: disabled for amd64,
+    kfreebsd-amd64, and lpia; enabled for all other architectures.
+  
+  * control: Mark libgmp-dev as "Multi-arch: same", requested by Wookey
+    http://lists.alioth.debian.org/pipermail/debian-science-maintainers/2012-May/013386.html
+
+ -- Steve M. Robbins <smr@debian.org>  Fri, 01 Jun 2012 17:22:56 -0500
+
+gmp (2:5.0.5+dfsg-1.1) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * Revert to --disable-fat, as it seems to cause gcc to abort on some
+    machines (closes: #671866)
+
+ -- Julien Cristau <jcristau@debian.org>  Tue, 08 May 2012 19:24:03 +0200
+
+gmp (2:5.0.5+dfsg-1) unstable; urgency=low
+
+  * New upstream.
+  
+  * rules: Always built FAT binary, on advice from upstream.  By default,
+    GMP compiles for the CPU it detect at configure time.  But with
+    --enable-fat it detects the CPU at run time.  This is important for
+    cpu-dependent workarounds.
+
+ -- Steve M. Robbins <smr@debian.org>  Sun, 06 May 2012 12:24:35 -0500
+
+gmp (2:5.0.4+dfsg-1) unstable; urgency=low
+
+  * New upstream version.
+    - Fix for buffer overruns.  Closes: #658821.
+
+  * rules: add build-arch, build-indep rules.
+  
+ -- Steve M. Robbins <smr@debian.org>  Sat, 11 Feb 2012 11:41:31 -0600
+
+gmp (2:5.0.3+dfsg-1) unstable; urgency=low
+
+  * New upstream version.  Supports s390x.
+  
+  * patches/s390x.patch: Remove.
+  * patches/upstream-dcpi1_bdiv_q.patch: Remove.  Applied upstream.
+
+ -- Steve M. Robbins <smr@debian.org>  Sat, 28 Jan 2012 02:43:35 -0600
+
+gmp (2:5.0.2+dfsg-2) unstable; urgency=low
+
+  * gmp.h: Add case for s390x.
+  
+  * control: Add Breaks relations from libgmp-dev to force upgrade of
+    packages that relied on libgmp.la (thanks, Jonathan Nieder).  Closes:
+    #645475.
+
+  * rules: Remove .la file from the libgmp-dev package.  Anyone relying on
+    it would not be able to find it after it moved from /usr/lib to
+    /usr/lib/<arch>, anyway  (thanks, Jonathan Nieder).
+
+ -- Steve M. Robbins <smr@debian.org>  Wed, 19 Oct 2011 22:42:12 -0500
+
+gmp (2:5.0.2+dfsg-1) unstable; urgency=low
+
+  * New upstream version.  Closes: #627012.
+  
+  * rules: Empty dependency_libs.  Closes: #633312.
+  
+  * orig-source.patch: New.  
+  * patches/s390x.patch: New. 
+  * rules: Patches to enable building on s390x (thanks, Andreas Krebbel).
+    Closes: #635461.
+  
+  * patches/upstream-dcpi1_bdiv_q.patch.  New.  Upstream fix: There is a
+    GMP bug in mpn/generic/dcpi1_bdiv_q.c that causes incorrect
+    computation with extremely low probability, for unnormalised
+    dividends. The bug might also result in a decrement of memory above
+    dividends, with some potential security impact. The bug might affect
+    several user-level routines, e.g., mpz_invert, but only for operands
+    of at least 3000 bits (for smaller operands, a simpler algorithm is
+    used).
+  
+  * control:
+  * rules: Apply patch (thanks, Riku Voipio) for multiarch, except we do
+    not mark libgmp-dev as multiarch.  Closes: #638959.
+
+ -- Steve M. Robbins <smr@debian.org>  Mon, 29 Aug 2011 23:06:19 -0500
+
+gmp (2:5.0.1+dfsg-7) unstable; urgency=low
+
+  [ Peter Pearse ]
+  * For cross builds, strip GNU_TYPES & pass --target.  Closes: #605038.
+
+  [ Steve Langasek ]
+  * We don't need to use $(strip), just avoid having whitespace in the first
+    place.
+  * For that matter, this s/i386/i486/ substitution is entirely unnecessary
+    to begin with; the DEB_HOST_GNU_TYPE is already i486 on Debian, and i686
+    on Ubuntu.  So as long as we're modifying this line, let's simplify it
+    some more.
+
+  [ Steve Robbins ]
+  * control: Make libgmp-dev, and lib{32,64}-dev real packages, providing
+    virtual packages libgmp10-dev, etc.  Add real package libgmp3-dev, a
+    dummy package to pull in libgmp-dev.  Required to ease transition of
+    mlton because it build-depends on itself and on versioned libgmp3-dev.
+    See http://lists.debian.org/debian-release/2011/03/msg00374.html.
+  
+ -- Steve M. Robbins <smr@debian.org>  Tue, 22 Mar 2011 22:00:03 -0500
+
+gmp (2:5.0.1+dfsg-6) unstable; urgency=low
+
+  * control: libgmp10-dev provides the old libgmp3-dev package.  This is a
+    temporary measure to ease the transition for ghc, which build-depends
+    on itself as well as libgmp3-dev; c.f.
+    http://lists.debian.org/debian-haskell/2011/03/msg00013.html
+
+ -- Steve M. Robbins <smr@debian.org>  Sun, 06 Mar 2011 09:38:56 -0600
+
+gmp (2:5.0.1+dfsg-5) unstable; urgency=low
+
+  * Merge the v5 branch back to trunk.
+
+  * Package libgmp10-dev also provides libgmp-dev so you can build-depend
+    on an unversioned GMP -dev package.
+  
+  * Remove archaic MP compatibility library (libmp3 and 32/64-bit
+    variants).
+  
+  * control: Set Standards-Version to 3.9.1.
+    - rules: don't build with -D_REENTRANT
+
+ -- Steve M. Robbins <smr@debian.org>  Sat, 05 Mar 2011 10:25:02 -0600
+
+gmp (2:5.0.1+dfsg-4) experimental; urgency=low
+
+  * rules: Build with -O2 on ia64, to work around ICE
+    (http://gcc.gnu.org/bugzilla/show_bug.cgi?id=43603).
+
+ -- Steve M. Robbins <smr@debian.org>  Mon, 14 Feb 2011 21:39:01 -0600
+
+gmp (2:5.0.1+dfsg-3) experimental; urgency=low
+
+  [ Sylvestre Ledru ]
+  * Package moved to Debian Science.
+  
+  * gmp.h: Add support for __m68k__ (thanks, Thorsten Glaser).  
+    Closes: #601287.
+  
+  * libgmp3-doc.examples:
+  * libgmp3-doc.README.Debian: Rename to libgmp10-doc.xxx.
+  
+  * libgmp3.prerm: Remove obsolete file.  Was used to remove /usr/doc/xxx
+    symlinks from back at the time of the /usr/doc --> /usr/share/doc
+    transition.
+
+ -- Steve M. Robbins <smr@debian.org>  Sat, 06 Nov 2010 17:55:15 -0500
+
+gmp (2:5.0.1+dfsg-2) experimental; urgency=low
+
+  * control: 
+  * rules: New packages libmp3, lib32mp3, lib64mp3.  Split library mp
+    out from the libgmp package as they have evolved to use different
+    major numbers now.  Make libgmp10-dev conflict & replace libgmp3-dev
+    packages; ditto for 32-bit and 64-bit variants.  Closes: #570225.
+
+ -- Steve M. Robbins <smr@debian.org>  Sun, 28 Feb 2010 03:31:42 -0600
+
+gmp (2:5.0.1+dfsg-1) experimental; urgency=low
+
+  * New upstream release.  Library gmp SOVERSION bumped from 3 to 10.
+  
+  * control: New packages (libgmp10, libgmp10-dev, etc) replace
+    corresponding packages due to SOVERSION change.  Drop some
+    now-obsolete conflicts on libgmp3 and libgmp2 pacakges.
+    Bump Standards-Version to 3.8.4.
+
+ -- Steve M. Robbins <smr@debian.org>  Sun, 07 Feb 2010 11:04:56 -0600
+
+gmp (2:5.0.0+dfsg-1) experimental; urgency=low
+
+  * New upstream release.
+
+ -- Steve M. Robbins <smr@debian.org>  Sat, 09 Jan 2010 19:38:41 -0600
+
+gmp (2:4.3.2+dfsg-2) UNRELEASED; urgency=low
+
+  * Package moved to Debian Science
+
+  [ Steve M. Robbins ]
+  * control: Set Standards-Version to 3.8.3.  Add ${misc:Depends} to each package.
+
+ -- Sylvestre Ledru <sylvestre@debian.org>  Wed, 28 Apr 2010 14:24:45 +0200
+
 gmp (2:4.3.2+dfsg-1) unstable; urgency=low
 
   * New upstream version.
