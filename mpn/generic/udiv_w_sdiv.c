@@ -9,7 +9,7 @@
    GNU MP RELEASE.
 
 
-Copyright 1992, 1994, 1996, 2000 Free Software Foundation, Inc.
+Copyright 1992, 1994, 1996, 2000, 2011, 2012 Free Software Foundation, Inc.
 
 This file is part of the GNU MP Library.
 
@@ -31,8 +31,7 @@ along with the GNU MP Library.  If not, see http://www.gnu.org/licenses/.  */
 #include "longlong.h"
 
 mp_limb_t
-mpn_udiv_w_sdiv (rp, a1, a0, d)
-     mp_limb_t *rp, a1, a0, d;
+mpn_udiv_w_sdiv (mp_limb_t *rp, mp_limb_t a1, mp_limb_t a0, mp_limb_t d)
 {
   mp_limb_t q, r;
   mp_limb_t c0, c1, b1;
@@ -42,7 +41,7 @@ mpn_udiv_w_sdiv (rp, a1, a0, d)
 
   if ((mp_limb_signed_t) d >= 0)
     {
-      if (a1 < d - a1 - (a0 >> (BITS_PER_MP_LIMB - 1)))
+      if (a1 < d - a1 - (a0 >> (GMP_LIMB_BITS - 1)))
 	{
 	  /* dividend, divisor, and quotient are nonnegative */
 	  sdiv_qrnnd (q, r, a1, a0, d);
@@ -50,18 +49,18 @@ mpn_udiv_w_sdiv (rp, a1, a0, d)
       else
 	{
 	  /* Compute c1*2^32 + c0 = a1*2^32 + a0 - 2^31*d */
-	  sub_ddmmss (c1, c0, a1, a0, d >> 1, d << (BITS_PER_MP_LIMB - 1));
+	  sub_ddmmss (c1, c0, a1, a0, d >> 1, d << (GMP_LIMB_BITS - 1));
 	  /* Divide (c1*2^32 + c0) by d */
 	  sdiv_qrnnd (q, r, c1, c0, d);
 	  /* Add 2^31 to quotient */
-	  q += (mp_limb_t) 1 << (BITS_PER_MP_LIMB - 1);
+	  q += (mp_limb_t) 1 << (GMP_LIMB_BITS - 1);
 	}
     }
   else
     {
       b1 = d >> 1;			/* d/2, between 2^30 and 2^31 - 1 */
       c1 = a1 >> 1;			/* A/2 */
-      c0 = (a1 << (BITS_PER_MP_LIMB - 1)) + (a0 >> 1);
+      c0 = (a1 << (GMP_LIMB_BITS - 1)) + (a0 >> 1);
 
       if (a1 < b1)			/* A < 2^32*b1, so A/2 < 2^31*b1 */
 	{
@@ -116,12 +115,12 @@ mpn_udiv_w_sdiv (rp, a1, a0, d)
 	{				/* Hence a1 = d - 1 = 2*b1 - 1 */
 	  if (a0 >= -d)
 	    {
-	      q = -1;
+	      q = -CNST_LIMB(1);
 	      r = a0 + d;
 	    }
 	  else
 	    {
-	      q = -2;
+	      q = -CNST_LIMB(2);
 	      r = a0 + 2*d;
 	    }
 	}

@@ -41,7 +41,7 @@ define(`rp',	`%rdi')
 define(`up',	`%rsi')
 define(`vp',	`%rdx')
 define(`n',	`%rcx')
-define(`cnt'	`%r8')
+define(`cnt',	`%r8')
 
 ifdef(`OPERATION_addlsh_n',`
   define(ADDSUBC,       `adc')
@@ -149,7 +149,7 @@ L(oop):
 	jnc	L(oop)
 L(end):
 	add	%ebx, %ebx
-	adc	$0, %r15
+	ADDSUBC	$0, %r15
 	mov	%r15, %rax
 	pop	%rbx
 	pop	%r15

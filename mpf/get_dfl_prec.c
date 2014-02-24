@@ -21,8 +21,8 @@ along with the GNU MP Library.  If not, see http://www.gnu.org/licenses/.  */
 #include "gmp-impl.h"
 
 
-unsigned long
-mpf_get_default_prec (void)
+mp_bitcnt_t
+mpf_get_default_prec (void) __GMP_NOTHROW
 {
   return __GMPF_PREC_TO_BITS (__gmp_default_fp_limb_precision);
 }
