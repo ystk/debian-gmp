@@ -2,23 +2,34 @@
 
    Contributed to the GNU project by Torbjorn Granlund.
 
-Copyright 1991, 1993, 1994, 1996, 1997, 1999, 2000, 2001, 2002, 2003, 2005,
-2006, 2007, 2009, 2010 Free Software Foundation, Inc.
+Copyright 1991, 1993, 1994, 1996, 1997, 1999-2003, 2005-2007, 2009, 2010, 2012
+Free Software Foundation, Inc.
 
 This file is part of the GNU MP Library.
 
 The GNU MP Library is free software; you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation; either version 3 of the License, or (at your
-option) any later version.
+it under the terms of either:
+
+  * the GNU Lesser General Public License as published by the Free
+    Software Foundation; either version 3 of the License, or (at your
+    option) any later version.
+
+or
+
+  * the GNU General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any
+    later version.
+
+or both in parallel, as here.
 
 The GNU MP Library is distributed in the hope that it will be useful, but
 WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
-License for more details.
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
 
-You should have received a copy of the GNU Lesser General Public License
-along with the GNU MP Library.  If not, see http://www.gnu.org/licenses/.  */
+You should have received copies of the GNU General Public License and the
+GNU Lesser General Public License along with the GNU MP Library.  If not,
+see https://www.gnu.org/licenses/.  */
 
 #include "gmp.h"
 #include "gmp-impl.h"
@@ -27,6 +38,39 @@ along with the GNU MP Library.  If not, see http://www.gnu.org/licenses/.  */
 #ifndef MUL_BASECASE_MAX_UN
 #define MUL_BASECASE_MAX_UN 500
 #endif
+
+/* Areas where the different toom algorithms can be called (extracted
+   from the t-toom*.c files, and ignoring small constant offsets):
+
+   1/6  1/5 1/4 4/13 1/3 3/8 2/5 5/11 1/2 3/5 2/3 3/4 4/5   1 vn/un
+                                        4/7              6/7
+				       6/11
+                                       |--------------------| toom22 (small)
+                                                           || toom22 (large)
+                                                       |xxxx| toom22 called
+                      |-------------------------------------| toom32
+                                         |xxxxxxxxxxxxxxxx| | toom32 called
+                                               |------------| toom33
+                                                          |x| toom33 called
+             |---------------------------------|            | toom42
+	              |xxxxxxxxxxxxxxxxxxxxxxxx|            | toom42 called
+                                       |--------------------| toom43
+                                               |xxxxxxxxxx|   toom43 called
+         |-----------------------------|                      toom52 (unused)
+                                                   |--------| toom44
+						   |xxxxxxxx| toom44 called
+                              |--------------------|        | toom53
+                                        |xxxxxx|              toom53 called
+    |-------------------------|                               toom62 (unused)
+                                           |----------------| toom54 (unused)
+                      |--------------------|                  toom63
+	                      |xxxxxxxxx|                   | toom63 called
+                          |---------------------------------| toom6h
+						   |xxxxxxxx| toom6h called
+                                  |-------------------------| toom8h (32 bit)
+                 |------------------------------------------| toom8h (64 bit)
+						   |xxxxxxxx| toom8h called
+*/
 
 #define TOOM33_OK(an,bn) (6 + 2 * an < 3 * bn)
 #define TOOM44_OK(an,bn) (12 + 3 * an < 4 * bn)
@@ -170,7 +214,7 @@ mpn_mul (mp_ptr prodp,
       /* FIXME: This condition (repeated in the loop below) leaves from a vn*vn
 	 square to a (3vn-1)*vn rectangle.  Leaving such a rectangle is hardly
 	 wise; we would get better balance by slightly moving the bound.  We
-	 will sometimes end up with un < vn, like the the X3 arm below.  */
+	 will sometimes end up with un < vn, like in the X3 arm below.  */
       if (un >= 3 * vn)
 	{
 	  mp_limb_t cy;
